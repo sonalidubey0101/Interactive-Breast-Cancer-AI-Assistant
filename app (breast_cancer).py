@@ -15,7 +15,7 @@ from datetime import datetime
 from fpdf import FPDF
 import io
 
-st.set_page_config(page_title="AI Diagnostic Assistant - Oncology Screening", layout="wide")
+st.set_page_config(page_title="Breast Cancer Diagnostic Assistant", layout="wide")
 
 # ---------------------------------------------------------------------------
 # LOAD MODEL + EXPLAINER (cached so it only loads once per session)
