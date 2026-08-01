@@ -1,5 +1,6 @@
 """
 app.py -- AI Diagnostic Assistant for Oncology Screening
+Streamlit dashboard built on top of train_model.py's saved artifact.
 
 Run locally with:  streamlit run app.py
 """
@@ -14,10 +15,11 @@ from datetime import datetime
 from fpdf import FPDF
 import io
 
-st.set_page_config(page_title="Breast Cancer - AI Diagnostic Assistant ", layout="wide")
+st.set_page_config(page_title="AI Diagnostic Assistant - Oncology Screening", layout="wide")
 
+# ---------------------------------------------------------------------------
 # LOAD MODEL + EXPLAINER (cached so it only loads once per session)
-
+# ---------------------------------------------------------------------------
 @st.cache_resource
 def load_artifact():
     with open("diagnostic_model.pkl", "rb") as f:
@@ -35,8 +37,9 @@ test_metrics = artifact["test_metrics"]
 if "screening_log" not in st.session_state:
     st.session_state.screening_log = []
 
+# ---------------------------------------------------------------------------
 # RISK STRATIFICATION LOGIC
-
+# ---------------------------------------------------------------------------
 def risk_band(probability_malignant: float) -> tuple[str, str]:
     """
     Converts a raw probability into a clinical-style risk band.
@@ -50,20 +53,25 @@ def risk_band(probability_malignant: float) -> tuple[str, str]:
         return "Medium Risk", "orange"
     else:
         return "High Risk", "red"
-        
-# SIDEBAR NAVIGATION
 
+
+# ---------------------------------------------------------------------------
+# SIDEBAR NAVIGATION
+# ---------------------------------------------------------------------------
 page = st.sidebar.radio("Navigate", ["Single Patient Screening", "Batch Upload", "Screening Analytics", "Model Performance"])
 
 st.sidebar.markdown("---")
 st.sidebar.caption(
     "This tool is a decision-support demo built on the Wisconsin Breast Cancer "
+    "diagnostic dataset. It is NOT a certified medical device and should never "
+    "be used for real clinical decisions."
 )
 
+# ===========================================================================
 # PAGE 1: SINGLE PATIENT SCREENING
-
+# ===========================================================================
 if page == "Single Patient Screening":
-    st.title("🩺 Breast Cancer Diagnostic Assistant")
+    st.title("🩺 AI Diagnostic Assistant — Oncology Screening")
     st.write("Enter lab feature values for a patient to get a risk assessment.")
 
     with st.expander("ℹ️ How to use this", expanded=False):
@@ -74,10 +82,13 @@ if page == "Single Patient Screening":
             "original Wisconsin Diagnostic Breast Cancer dataset."
         )
 
-    # Group features into mean / se / worst for a cleaner form layout
-    mean_feats = [f for f in feature_names if f.endswith("mean")]
-    se_feats = [f for f in feature_names if f.endswith("error")]
-    worst_feats = [f for f in feature_names if f.startswith("worst")]
+    # Group features into mean / se / worst for a cleaner form layout.
+    # NOTE: sklearn's built-in dataset names columns like "mean radius",
+    # "radius error", "worst radius" -- prefix/suffix pattern, not
+    # "radius_mean" style. This grouping matches THAT naming exactly.
+    mean_feats = [f for f in feature_names if f.startswith("mean ")]
+    se_feats = [f for f in feature_names if f.endswith(" error")]
+    worst_feats = [f for f in feature_names if f.startswith("worst ")]
 
     input_vals = {}
     tab1, tab2, tab3 = st.tabs(["Mean Values", "Standard Error", "Worst Values"])
