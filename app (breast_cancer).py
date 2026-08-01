@@ -124,12 +124,22 @@ if page == "Single Patient Screening":
 
         # --- SHAP explanation ---
         st.subheader("Why did the model decide this?")
-        shap_values = explainer.shap_values(X_input)
-        # For binary classifiers, shap_values can be a list [class0, class1] or a single array
-        if isinstance(shap_values, list):
-            sv = shap_values[1][0]
+        raw_shap = explainer.shap_values(X_input)
+        # Different shap versions return this differently for binary classifiers:
+        #   - a list of two arrays: [class_0_values, class_1_values]
+        #   - a 3D array shaped (n_samples, n_features, n_classes)
+        #   - a plain 2D array shaped (n_samples, n_features)
+        # This handles all three so the app works regardless of shap version.
+        if isinstance(raw_shap, list):
+            sv = np.array(raw_shap[1])[0]          # class 1 (Malignant), first sample
         else:
-            sv = shap_values[0]
+            raw_shap = np.array(raw_shap)
+            if raw_shap.ndim == 3:
+                sv = raw_shap[0, :, 1]              # first sample, all features, class 1
+            else:
+                sv = raw_shap[0]                    # first sample, all features
+
+        sv = np.ravel(sv)  # safety net: guarantee 1-D regardless of the branch above
 
         shap_df = pd.DataFrame({"feature": feature_names, "impact": sv})
         shap_df["abs_impact"] = shap_df["impact"].abs()
