@@ -1,7 +1,0 @@
-streamlit
-pandas
-numpy
-scikit-learn
-shap==0.46.0
-matplotlib
-fpdf2
