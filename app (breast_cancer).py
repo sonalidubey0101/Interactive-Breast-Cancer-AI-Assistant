@@ -17,9 +17,9 @@ import io
 
 st.set_page_config(page_title="Breast Cancer Diagnostic Assistant", layout="wide")
 
-# ---------------------------------------------------------------------------
+
 # LOAD MODEL + EXPLAINER (cached so it only loads once per session)
-# ---------------------------------------------------------------------------
+
 @st.cache_resource
 def load_artifact():
     with open("diagnostic_model.pkl", "rb") as f:
@@ -37,9 +37,9 @@ test_metrics = artifact["test_metrics"]
 if "screening_log" not in st.session_state:
     st.session_state.screening_log = []
 
-# ---------------------------------------------------------------------------
+
 # RISK STRATIFICATION LOGIC
-# ---------------------------------------------------------------------------
+
 def risk_band(probability_malignant: float) -> tuple[str, str]:
     """
     Converts a raw probability into a clinical-style risk band.
@@ -63,15 +63,14 @@ page = st.sidebar.radio("Navigate", ["Single Patient Screening", "Batch Upload",
 st.sidebar.markdown("---")
 st.sidebar.caption(
     "This tool is a decision-support demo built on the Wisconsin Breast Cancer "
-    "diagnostic dataset. It is NOT a certified medical device and should never "
-    "be used for real clinical decisions."
+    "diagnostic dataset. It is NOT a certified medical device. "
+    
 )
 
-# ===========================================================================
 # PAGE 1: SINGLE PATIENT SCREENING
-# ===========================================================================
+
 if page == "Single Patient Screening":
-    st.title("🩺 AI Diagnostic Assistant — Oncology Screening")
+    st.title("🩺 Breast Cancer Diagnostic Assistant ")
     st.write("Enter lab feature values for a patient to get a risk assessment.")
 
     with st.expander("ℹ️ How to use this", expanded=False):
@@ -199,9 +198,9 @@ if page == "Single Patient Screening":
         st.download_button("📄 Download PDF Report", data=pdf_bytes,
                             file_name=f"{patient_id}_screening_report.pdf", mime="application/pdf")
 
-# ===========================================================================
+
 # PAGE 2: BATCH UPLOAD
-# ===========================================================================
+
 elif page == "Batch Upload":
     st.title("📁 Batch Screening Upload")
     st.write("Upload a CSV with multiple patient records (same 30 feature columns) to screen them all at once.")
@@ -237,9 +236,9 @@ elif page == "Batch Upload":
             csv_out = results.to_csv(index=False).encode()
             st.download_button("⬇ Download Results CSV", data=csv_out, file_name="batch_screening_results.csv")
 
-# ===========================================================================
+
 # PAGE 3: SCREENING ANALYTICS (the "monitoring dashboard" feature)
-# ===========================================================================
+
 elif page == "Screening Analytics":
     st.title("📊 Screening Program Analytics")
 
@@ -259,9 +258,8 @@ elif page == "Screening Analytics":
         st.subheader("Screening Log")
         st.dataframe(log_df.sort_values("timestamp", ascending=False))
 
-# ===========================================================================
+
 # PAGE 4: MODEL PERFORMANCE (transparency page -- shows this isn't a black box)
-# ===========================================================================
 elif page == "Model Performance":
     st.title("📈 Model Performance & Validation")
     st.write("Performance of the underlying Decision Tree classifier, evaluated on a held-out test set.")
